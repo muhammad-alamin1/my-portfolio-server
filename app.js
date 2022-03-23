@@ -1,39 +1,37 @@
-const express = require('express');
-const cors = require('cors');
-const { MongoClient } = require('mongodb');
-const bodyParser = require('body-parser');
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.oxeqo.mongodb.net/${process.env.DATABASE_NAME}?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-require('dotenv').config();
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+
+// import route & middleware
+const rootRoute = require("./route/rootRoute");
+const messageRoute = require("./route/messageRoute");
+const applicationMiddleware = require("./middleware/applicationMiddleware");
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-const PORT = 8080 || process.env.PORT;
 
+// use middleware
+app.use(applicationMiddleware);
 
-client.connect(err => {
-    const collection = client.db(`${process.env.DATABASE_NAME}`).collection(`${process.env.DATABASE_COLLECTION_NAME}`);
-    console.log('Database connected');
+// use routes
+app.use("/", rootRoute);
+app.use("/message", messageRoute);
 
-    app.get('/', (req, res) => {
-        res.send('Hello from db it is working');
-    })
+// DB uri
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jdxha.mongodb.net/${process.env.DATABASE_NAME}?retryWrites=true&w=majority`;
 
-    // Database POST
-    app.post('/sendMessage', (req, res) => {
-        const message = req.body;
-        collection.insertOne(message)
-            .then((result) => {
-                console.log(result);
-                res.send(result.insertedCount > 0);
-            })
-        console.log(message);
-    })
+// database connect with mongoose
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
-
-app.listen(PORT, () => {
-    console.log(`Listening on ${PORT} is running`);
-})
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error: "));
+db.once("open", () => {
+  console.log("Connected successfully");
+  // port
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`listening on port http://localhost:${PORT}`);
+  });
+});
