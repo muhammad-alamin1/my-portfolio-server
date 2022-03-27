@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const rootRoute = require("./route/rootRoute");
 const messageRoute = require("./route/messageRoute");
 const applicationMiddleware = require("./middleware/applicationMiddleware");
+const addressRoute = require("./route/addressRoute");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(applicationMiddleware);
 // use routes
 app.use("/", rootRoute);
 app.use("/message", messageRoute);
+app.use("/address", addressRoute);
 
 // DB uri
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jdxha.mongodb.net/${process.env.DATABASE_NAME}?retryWrites=true&w=majority`;
